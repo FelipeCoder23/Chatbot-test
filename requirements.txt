@@ -1,6 +1,11 @@
 # Requerimientos mínimos para ejecutar el chatbot con Streamlit y Transformers
-# .venv\Scripts\activate
-streamlit==1.21.0
-transformers==4.27.4
-torch==1.13.1
-sentencepiece==0.1.97
+streamlit
+transformers
+torch
+accelerate
+einops
+bitsandbytes
+numpy
+pandas
+protobuf
+requests
