@@ -1,11 +1,3 @@
-# Requerimientos mínimos para ejecutar el chatbot con Streamlit y Transformers
+# Dependencias principales
 streamlit
-transformers
-torch
-accelerate
-einops
-bitsandbytes
-numpy
-pandas
-protobuf
 requests

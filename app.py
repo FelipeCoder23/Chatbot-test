@@ -1,57 +1,70 @@
 """
 app.py
 
-Aplicación principal de Streamlit para el chatbot.
+Aplicación principal de Streamlit para el chatbot con Ollama.
 """
 
 import streamlit as st
-from utils import load_model, generate_response
+from utils import generate_response
 
-# 1. Configuración de la página de Streamlit
-st.set_page_config(page_title="Chatbot Open Source", page_icon="💬", layout="centered")
+# Configuración de la página
+st.set_page_config(page_title="Chat AI", page_icon="💬")
 
-# 2. Título y descripción
-st.title("Chatbot Open Source con Streamlit")
-st.markdown("Este es un ejemplo de chatbot utilizando un modelo de lenguaje open source.")
+# Estilo CSS personalizado
+st.markdown("""
+<style>
+.chat-container {
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+}
+.user-message {
+    background-color: #E3F2FD;
+    margin-left: 20%;
+    margin-right: 5%;
+    border: 1px solid #90CAF9;
+    color: #1565C0;
+}
+.bot-message {
+    background-color: #FFFFFF;
+    margin-right: 20%;
+    margin-left: 5%;
+    border: 1px solid #E0E0E0;
+    color: #333333;
+}
+</style>
+""", unsafe_allow_html=True)
 
-# 3. Carga (en caché) del modelo
-@st.cache_resource
-def get_model():
-    return load_model("phi")  # Usaremos el modelo phi de Ollama
+st.markdown("# 💬 Chat AI")
+st.markdown("---")
 
-model_name = get_model()
+# Inicializar el historial de chat
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-# 4. Manejo de estado de la conversación
-if "conversation_history" not in st.session_state:
-    st.session_state.conversation_history = []
+# Mostrar mensajes anteriores
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.write(message["content"])
 
-# 5. Input de usuario
-user_input = st.text_input("Escribe tu mensaje aquí:", "")
-
-# 6. Botón de envío
-if st.button("Enviar") and user_input:  # Verificamos que haya input
-    # Añadimos la entrada del usuario al historial
-    st.session_state.conversation_history.append(f"Usuario: {user_input}")
-
-    # Construimos un prompt más estructurado
-    context = (
-        "La siguiente es una conversación amigable y útil entre un humano y un asistente virtual.\n"
-        "El asistente siempre responde en español de manera clara y precisa.\n\n"
-        "\n".join(st.session_state.conversation_history[-3:]) +  # Solo usamos las últimas 3 interacciones
-        "\nPregunta actual: " + user_input
-    )
+# Input del usuario
+if prompt := st.chat_input("Escribe tu mensaje..."):
+    # Agregar mensaje del usuario
+    st.chat_message("user").write(prompt)
     
-    # Generamos respuesta
-    respuesta = generate_response(context, model_name)
+    # Obtener respuesta
+    response = generate_response(prompt)
+    
+    # Mostrar respuesta del bot
+    with st.chat_message("assistant"):
+        st.write(response)
+    
+    # Guardar la conversación
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.session_state.messages.append({"role": "assistant", "content": response})
 
-    # Guardamos la respuesta en el historial
-    st.session_state.conversation_history.append(f"Asistente: {respuesta}")
-
-# 7. Mostrar el historial de conversación
-if st.session_state.conversation_history:
-    st.write("## Conversación")
-    for line in st.session_state.conversation_history:
-        if line.startswith("Usuario:"):
-            st.markdown(f"**{line}**")
-        else:
-            st.markdown(line)
+# Botón para limpiar chat
+if st.sidebar.button("Limpiar Chat"):
+    st.session_state.messages = []
+    st.rerun()
